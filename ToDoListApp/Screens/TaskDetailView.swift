@@ -9,7 +9,6 @@ import SwiftUI
 
 struct TaskDetailView: View {
     @Environment(\.managedObjectContext) private var viewContext
-    @Environment(\.dismiss) var dismiss
     
     @State private var isComplete: Bool = false
     @State private var title: String = ""
@@ -31,27 +30,34 @@ struct TaskDetailView: View {
         Form {
             Section("Title") {
                 TextField("", text: $title)
+                    .disabled(!isEditing)
             }
             Section("Description") {
-                TextField("", text: $description)
+                TextField("", text: $description, axis: .vertical)
                     .font(.subheadline)
+                    .disabled(!isEditing)
+                    .lineLimit(4)
+                    .multilineTextAlignment(.leading)
+                    .frame(height: 100, alignment: .top)
             }
-            HStack {
-                Text("Due date")
-                Spacer()
-                Text(item.dueDateFormatted)
+            Section {
+                DatePicker("Due date", selection: $date)
+                    .disabled(!isEditing)
+                Toggle("Set as complete", isOn: $isComplete)
+                    .onChange(of: isComplete, perform: { newValue in
+                        item.isComplete = newValue
+                        try? viewContext.save()
+                    })
+                    .toggleStyle(.switch)
             }
-            Toggle("Set as complete", isOn: $isComplete)
-                .onChange(of: isComplete, perform: { newValue in
-                    item.isComplete = newValue
-                    try? viewContext.save()
-                })
-                .toggleStyle(.switch)
         }
         .toolbar {
             ToolbarItem {
-                Button("Update") {
-                    update()
+                Button(!isEditing ? "Edit": "Update") {
+                    if isEditing {
+                        update()
+                    }
+                    isEditing.toggle()
                 }
             }
         }
@@ -62,7 +68,6 @@ struct TaskDetailView: View {
         item.desc = description
         item.dueDate = date
         try? viewContext.save()
-        dismiss()
     }
 }
 

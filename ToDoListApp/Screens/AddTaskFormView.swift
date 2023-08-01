@@ -21,6 +21,9 @@ struct AddTaskFormView: View {
                 Section {
                     TextField("Title", text: $title)
                     TextField("Description", text: $description)
+                        .lineLimit(4)
+                        .multilineTextAlignment(.leading)
+                        .frame(height: 100, alignment: .top)
                     DatePicker("Due Date", selection: $date)
                 }
             }
@@ -36,7 +39,6 @@ struct AddTaskFormView: View {
                     .padding()
             }
         }
-        .background(.red)
     }
     
     private func saveTask() {
