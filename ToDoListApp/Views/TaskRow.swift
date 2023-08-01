@@ -9,12 +9,14 @@ import SwiftUI
 import CoreData
 
 struct TaskRow: View {
-    var item: Item
+    @Environment(\.managedObjectContext) private var moc
+    @ObservedObject var item: Item
     
     var body: some View {
         HStack(alignment: .center) {
             Button {
-                print("tap")
+                item.isComplete.toggle()
+                try? moc.save()
             } label: {
                 Image(systemName: item.isComplete ?  "checkmark.circle.fill" : "circle")
             }

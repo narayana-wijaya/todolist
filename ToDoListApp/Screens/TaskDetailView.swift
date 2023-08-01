@@ -17,7 +17,7 @@ struct TaskDetailView: View {
     @State private var date: Date = Date()
     @State private var isEditing: Bool = false
     
-    let item: Item
+    @ObservedObject var item: Item
     
     init(item: Item) {
         self.item = item

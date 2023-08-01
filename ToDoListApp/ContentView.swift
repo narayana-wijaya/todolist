@@ -9,7 +9,7 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.managedObjectContext) private var moc
     @State private var showAddForm = false
 
     @FetchRequest(
@@ -36,7 +36,6 @@ struct ContentView: View {
                     }
                 }
             }
-            Text("Select an item")
         }
         .sheet(isPresented: $showAddForm) {
             AddTaskFormView()
@@ -45,10 +44,10 @@ struct ContentView: View {
 
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
+            offsets.map { items[$0] }.forEach(moc.delete)
 
             do {
-                try viewContext.save()
+                try moc.save()
             } catch {
                 let nsError = error as NSError
                 fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
