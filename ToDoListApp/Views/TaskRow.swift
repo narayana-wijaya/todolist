@@ -20,7 +20,7 @@ struct TaskRow: View {
             } label: {
                 Image(systemName: item.isComplete ?  "checkmark.circle.fill" : "circle")
             }
-            .padding()
+            .buttonStyle(.borderless)
             .tint(.gray)
 
             NavigationLink {

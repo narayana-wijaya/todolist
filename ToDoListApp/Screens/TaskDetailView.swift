@@ -68,7 +68,8 @@ struct TaskDetailView: View {
 
 struct TaskDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        let item = Item()
-        TaskDetailView(item: item)
+        let result = PersistenceController(inMemory: true)
+        let viewContext = result.container.viewContext
+        TaskDetailView(item: Item(context: viewContext))
     }
 }

@@ -20,7 +20,7 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             List {
-                ForEach(items) { item in
+                ForEach(items.sorted { !$0.isComplete && $1.isComplete }) { item in
                     TaskRow(item: item)
                 }
                 .onDelete(perform: deleteItems)
