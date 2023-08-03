@@ -7,13 +7,15 @@
 
 import SwiftUI
 
-struct AddTaskFormView: View {
+struct AddTaskFormScreen: View {
     @Environment(\.managedObjectContext) var moc
     @Environment(\.dismiss) var dismiss
     
     @State private var title: String = ""
     @State private var description: String = ""
     @State private var date: Date = Date()
+    @State private var isError: Bool = false
+    @State private var error: CustomError?
     
     var body: some View {
         VStack {
@@ -24,7 +26,9 @@ struct AddTaskFormView: View {
                         .lineLimit(4)
                         .multilineTextAlignment(.leading)
                         .frame(height: 100, alignment: .top)
-                    DatePicker("Due Date", selection: $date)
+                    DatePicker("Due Date",
+                               selection: $date,
+                               in: Date()...)
                 }
             }
             Button {
@@ -39,9 +43,22 @@ struct AddTaskFormView: View {
                     .padding()
             }
         }
+        .alert(
+            isPresented: $isError,
+            error: error) {
+                Button("Close") {
+                    isError = false
+                }
+            }
     }
     
     private func saveTask() {
+        guard !title.isEmpty && !description.isEmpty else {
+            error = .emptyField
+            isError = true
+            return
+        }
+        
         withAnimation {
             let task = Item(context: moc)
             task.id = UUID()
@@ -64,6 +81,6 @@ struct AddTaskFormView: View {
 
 struct AddTaskFormView_Previews: PreviewProvider {
     static var previews: some View {
-        AddTaskFormView()
+        AddTaskFormScreen()
     }
 }

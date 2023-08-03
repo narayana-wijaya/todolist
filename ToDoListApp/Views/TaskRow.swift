@@ -24,7 +24,7 @@ struct TaskRow: View {
             .tint(.gray)
 
             NavigationLink {
-                TaskDetailView(item: item)
+                TaskDetailScreen(item: item)
             } label: {
                 VStack(alignment: .leading) {
                     Text(item.title ?? "title")
@@ -40,8 +40,6 @@ struct TaskRow: View {
 
 struct TaskRow_Previews: PreviewProvider {
     static var previews: some View {
-        let result = PersistenceController(inMemory: true)
-        let viewContext = result.container.viewContext
-        TaskRow(item: Item(context: viewContext))
+        TaskRow(item: PreviewData.itemPreview)
     }
 }

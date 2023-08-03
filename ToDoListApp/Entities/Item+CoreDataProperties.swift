@@ -21,10 +21,6 @@ extension Item {
     @NSManaged public var dueDate: Date?
     @NSManaged public var id: UUID?
     @NSManaged public var isComplete: Bool
-
-    var dueDateFormatted: String {
-        return (dueDate ?? Date()).formatted(date: .abbreviated, time: .shortened)
-    }
 }
 
 extension Item : Identifiable {

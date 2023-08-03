@@ -7,14 +7,16 @@
 
 import SwiftUI
 
-struct TaskDetailView: View {
-    @Environment(\.managedObjectContext) private var viewContext
+struct TaskDetailScreen: View {
+    @Environment(\.managedObjectContext) private var moc
     
     @State private var isComplete: Bool = false
     @State private var title: String = ""
     @State private var description: String = ""
     @State private var date: Date = Date()
     @State private var isEditing: Bool = false
+    @State private var isError: Bool = false
+    @State private var errorText: String = ""
     
     @ObservedObject var item: Item
     
@@ -46,7 +48,7 @@ struct TaskDetailView: View {
                 Toggle("Set as complete", isOn: $isComplete)
                     .onChange(of: isComplete, perform: { newValue in
                         item.isComplete = newValue
-                        try? viewContext.save()
+                        saveLocally()
                     })
                     .toggleStyle(.switch)
             }
@@ -61,20 +63,34 @@ struct TaskDetailView: View {
                 }
             }
         }
+        .alert(errorText, isPresented: $isError) {
+            Button("Close") {
+                isError = false
+            }
+        }
     }
     
     private func update() {
         item.title = title
         item.desc = description
         item.dueDate = date
-        try? viewContext.save()
+        saveLocally()
+    }
+    
+    private func saveLocally() {
+        if moc.hasChanges {
+            do {
+                try moc.save()
+            } catch {
+                errorText = error.localizedDescription
+                isError = true
+            }
+        }
     }
 }
 
 struct TaskDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        let result = PersistenceController(inMemory: true)
-        let viewContext = result.container.viewContext
-        TaskDetailView(item: Item(context: viewContext))
+        TaskDetailScreen(item: PreviewData.itemPreview)
     }
 }
