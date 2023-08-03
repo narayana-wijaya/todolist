@@ -11,28 +11,24 @@ struct AddTaskFormScreen: View {
     @Environment(\.managedObjectContext) var moc
     @Environment(\.dismiss) var dismiss
     
-    @State private var title: String = ""
-    @State private var description: String = ""
-    @State private var date: Date = Date()
-    @State private var isError: Bool = false
-    @State private var error: CustomError?
+    @StateObject private var model = TaskDataModel()
     
     var body: some View {
         VStack {
             Form {
                 Section {
-                    TextField("Title", text: $title)
-                    TextField("Description", text: $description)
+                    TextField("Title", text: $model.title)
+                    TextField("Description", text: $model.description, axis: .vertical)
                         .lineLimit(4)
                         .multilineTextAlignment(.leading)
                         .frame(height: 100, alignment: .top)
                     DatePicker("Due Date",
-                               selection: $date,
+                               selection: $model.date,
                                in: Date()...)
                 }
             }
             Button {
-                saveTask()
+                saveToLocal()
             } label: {
                 Text("SAVE")
                     .fontWeight(.bold)
@@ -44,37 +40,30 @@ struct AddTaskFormScreen: View {
             }
         }
         .alert(
-            isPresented: $isError,
-            error: error) {
+            isPresented: $model.isError,
+            error: model.error) {
                 Button("Close") {
-                    isError = false
+                    model.isError = false
                 }
             }
     }
     
-    private func saveTask() {
-        guard !title.isEmpty && !description.isEmpty else {
-            error = .emptyField
-            isError = true
+    private func saveToLocal() {
+        guard model.isValid() else {
             return
         }
         
-        withAnimation {
-            let task = Item(context: moc)
-            task.id = UUID()
-            task.title = title
-            task.desc = description
-            task.dueDate = date
-            
-            if moc.hasChanges {
-                do {
-                    try moc.save()
-                } catch {
-                    let nsError = error as NSError
-                    fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-                }
+        let task = Item(context: moc)
+        model.create(task: task)
+        if moc.hasChanges {
+            do {
+                try moc.save()
+            } catch {
+                let nsError = error as NSError
+                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
             }
         }
+        
         dismiss()
     }
 }

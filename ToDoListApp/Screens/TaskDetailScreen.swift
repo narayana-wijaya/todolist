@@ -10,32 +10,21 @@ import SwiftUI
 struct TaskDetailScreen: View {
     @Environment(\.managedObjectContext) private var moc
     
-    @State private var isComplete: Bool = false
-    @State private var title: String = ""
-    @State private var description: String = ""
-    @State private var date: Date = Date()
     @State private var isEditing: Bool = false
-    @State private var isError: Bool = false
-    @State private var errorText: String = ""
-    
-    @ObservedObject var item: Item
+    @StateObject private var model: TaskDataModel
     
     init(item: Item) {
-        self.item = item
-        _isComplete = State(initialValue: item.isComplete)
-        _title = State(initialValue: item.title ?? "")
-        _description = State(initialValue: item.desc ?? "")
-        _date = State(initialValue: item.dueDate ?? Date())
+        _model = StateObject(wrappedValue: TaskDataModel(item: item))
     }
     
     var body: some View {
         Form {
             Section("Title") {
-                TextField("", text: $title)
+                TextField("", text: $model.title) // $model.item.title produce error
                     .disabled(!isEditing)
             }
             Section("Description") {
-                TextField("", text: $description, axis: .vertical)
+                TextField("", text: $model.description, axis: .vertical)
                     .font(.subheadline)
                     .disabled(!isEditing)
                     .lineLimit(4)
@@ -43,11 +32,10 @@ struct TaskDetailScreen: View {
                     .frame(height: 100, alignment: .top)
             }
             Section {
-                DatePicker("Due date", selection: $date)
+                DatePicker("Due date", selection: $model.date)
                     .disabled(!isEditing)
-                Toggle("Set as complete", isOn: $isComplete)
-                    .onChange(of: isComplete, perform: { newValue in
-                        item.isComplete = newValue
+                Toggle("Set as complete", isOn: $model.item.isComplete)
+                    .onChange(of: model.item.isComplete, perform: { newValue in
                         saveLocally()
                     })
                     .toggleStyle(.switch)
@@ -57,24 +45,20 @@ struct TaskDetailScreen: View {
             ToolbarItem {
                 Button(!isEditing ? "Edit": "Update") {
                     if isEditing {
-                        update()
+                        model.update()
+                        saveLocally()
                     }
                     isEditing.toggle()
                 }
             }
         }
-        .alert(errorText, isPresented: $isError) {
-            Button("Close") {
-                isError = false
+        .alert(
+            isPresented: $model.isError,
+            error: model.error) {
+                Button("Close") {
+                    model.isError = false
+                }
             }
-        }
-    }
-    
-    private func update() {
-        item.title = title
-        item.desc = description
-        item.dueDate = date
-        saveLocally()
     }
     
     private func saveLocally() {
@@ -82,8 +66,8 @@ struct TaskDetailScreen: View {
             do {
                 try moc.save()
             } catch {
-                errorText = error.localizedDescription
-                isError = true
+                let nsError = error as NSError
+                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
             }
         }
     }
