@@ -12,6 +12,7 @@ struct AddTaskFormScreen: View {
     @Environment(\.dismiss) var dismiss
     
     @StateObject private var model = TaskDataModel()
+    @EnvironmentObject private var errorState: ErrorState
     
     var body: some View {
         VStack {
@@ -39,17 +40,12 @@ struct AddTaskFormScreen: View {
                     .padding()
             }
         }
-        .alert(
-            isPresented: $model.isError,
-            error: model.error) {
-                Button("Close") {
-                    model.isError = false
-                }
-            }
+        .environmentObject(errorState)
     }
     
     private func saveToLocal() {
         guard model.isValid() else {
+            errorState.errorWrapper = ErrorWrapper(error: .emptyField, description: "Please fill the empty field")
             return
         }
         
@@ -60,7 +56,9 @@ struct AddTaskFormScreen: View {
                 try moc.save()
             } catch {
                 let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                errorState.errorWrapper = ErrorWrapper(
+                    error: .failSaveObject,
+                    description: "Unresolved error \(nsError), \(nsError.userInfo)")
             }
         }
         

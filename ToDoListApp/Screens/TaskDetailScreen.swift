@@ -12,6 +12,7 @@ struct TaskDetailScreen: View {
     
     @State private var isEditing: Bool = false
     @StateObject private var model: TaskDataModel
+    @EnvironmentObject private var errorState: ErrorState
     
     init(item: Item) {
         _model = StateObject(wrappedValue: TaskDataModel(item: item))
@@ -52,13 +53,7 @@ struct TaskDetailScreen: View {
                 }
             }
         }
-        .alert(
-            isPresented: $model.isError,
-            error: model.error) {
-                Button("Close") {
-                    model.isError = false
-                }
-            }
+        .environmentObject(errorState)
     }
     
     private func saveLocally() {
@@ -67,7 +62,9 @@ struct TaskDetailScreen: View {
                 try moc.save()
             } catch {
                 let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                errorState.errorWrapper = ErrorWrapper(
+                    error: .failSaveObject,
+                    description: "Unresolved error \(nsError), \(nsError.userInfo)")
             }
         }
     }

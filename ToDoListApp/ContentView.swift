@@ -16,6 +16,8 @@ struct ContentView: View {
         sortDescriptors: [NSSortDescriptor(keyPath: \Item.id, ascending: true)],
         animation: .default)
     private var items: FetchedResults<Item>
+    
+    @EnvironmentObject private var errorState: ErrorState
 
     var body: some View {
         NavigationView {
@@ -29,17 +31,15 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.automatic)
             .toolbar {
                 ToolbarItem {
-                    Button(role: .none) {
-                        showAddForm.toggle()
+                    NavigationLink {
+                        AddTaskFormScreen()
                     } label: {
                         Label("Add Item", systemImage: "plus")
                     }
                 }
             }
         }
-        .sheet(isPresented: $showAddForm) {
-            AddTaskFormScreen()
-        }
+        .environmentObject(errorState)
     }
 
     private func deleteItems(offsets: IndexSet) {
@@ -50,7 +50,9 @@ struct ContentView: View {
                 try moc.save()
             } catch {
                 let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                errorState.errorWrapper = ErrorWrapper(
+                    error: .failDeleteObject,
+                    description: "Unresolved error \(nsError), \(nsError.userInfo)")
             }
         }
     }

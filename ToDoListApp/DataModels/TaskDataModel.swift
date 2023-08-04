@@ -12,9 +12,6 @@ class TaskDataModel: ObservableObject {
     @Published var description: String = ""
     @Published var date: Date = Date()
     
-    @Published var isError: Bool = false
-    @Published var error: CustomError?
-    
     @Published var item: Item!
     
     init(item: Item? = nil) {
@@ -27,12 +24,7 @@ class TaskDataModel: ObservableObject {
     }
     
     func isValid() -> Bool {
-        isError = title.isEmpty && description.isEmpty
-        if isError {
-            error = .emptyField
-        }
-        
-        return !isError
+        return !title.isEmpty && !description.isEmpty
     }
     
     func create(task: Item) {
